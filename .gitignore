@@ -1,0 +1,8 @@
+# Ignore model runs and checkpoints
+runs/
+GRU_runs/
+*.pt
+*.pth
+*.log
+.ipynb_checkpoints/
+__pycache__/
