@@ -1,0 +1,191 @@
+# --- Experiment configurations --------------------------------------------------------------------
+
+# experiment name, used as folder name
+experiment_name: GRU_static_KFold5
+
+# files to specify training, validation and test basins
+train_basin_file: /work/pi_casey_umass_edu/Owen/lulc_lstm/txt_files/basins_StratifiedKFold_training_5.txt
+validation_basin_file: /work/pi_casey_umass_edu/Owen/lulc_lstm/txt_files/basins_StratifiedKFold_training_5.txt
+test_basin_file: /work/pi_casey_umass_edu/Owen/lulc_lstm/txt_files/basins_StratifiedKFold_test_5.txt
+
+run_dir: ../GRU_runs
+
+# training, validation and test time periods (format = 'dd/mm/yyyy')
+train_start_date: "01/01/2008"
+train_end_date: "31/12/2023"
+validation_start_date: "01/01/2008"
+validation_end_date: "31/12/2023"
+test_start_date: "01/01/2008"
+test_end_date: "31/12/2023"
+
+# which GPU (id) to use [in format of cuda:0, cuda:1 etc, or cpu or None]
+device: cuda:0
+
+# --- Validation configuration ---------------------------------------------------------------------
+
+# specify after how many epochs to perform validation
+validate_every: 5
+
+# specify how many random basins to use for validation
+validate_n_random_basins: 1200
+
+# specify which metrics to calculate during validation
+metrics:
+  - NSE
+  - RMSE
+  - Alpha-NSE
+
+# --- Model configuration --------------------------------------------------------------------------
+
+# base model type. Changed from cudalstm to gru.
+model: gru
+
+# prediction head [regression].
+head: regression
+
+# ----> Regression settings <----
+output_activation: linear
+
+# ----> General settings <----
+
+# Number of hidden states. 
+# GRUs are parameter efficient, so 256 is a good comparison to an LSTM of size 256.
+hidden_size: 256
+
+# REMOVED: initial_forget_bias (Not applicable to GRU)
+
+# Dropout applied to the output of the GRU
+output_dropout: 0.4
+
+# --- Training configuration -----------------------------------------------------------------------
+
+# specify optimizer [Adam]
+optimizer: AdamW
+
+# specify loss [MSE, NSE, RMSE]
+loss: NSE
+
+# specify learning rates
+learning_rate:
+  0: 5e-4   # Start at 0.0005 
+  10: 1e-4  # Drop to 0.0001 to refine
+  15: 1e-5  # Fine-tuning phase
+
+# Mini-batch size
+batch_size: 256
+
+# Number of training epochs
+epochs: 30
+
+# If a value, clips the gradients during training to that norm.
+clip_gradient_norm: 1
+
+# Defines which time steps are used to calculate the loss.
+predict_last_n: 1
+
+# Length of the input sequence
+seq_length: 270
+
+# Number of parallel workers used in the data pipeline
+num_workers: 8
+
+# Log the training loss every n steps
+log_interval: 1
+
+# If true, writes logging results into tensorboard file
+log_tensorboard: True
+
+# If a value and greater than 0, logs n random basins as figures during validation
+log_n_figures: 1
+
+# Save model weights every n epochs
+save_weights_every: 1
+
+# --- Data configurations --------------------------------------------------------------------------
+
+# which data set to use
+dataset: generic
+
+# Path to data set root
+data_dir: /work/pi_casey_umass_edu/pbanjara/LSTM-LULC/data/LSTM_input_data/LSTM_LULC_DROMEDARY_Zhilyaev_2024/time_series
+
+
+dynamic_inputs:
+  - prcp
+  - tmax
+  - tmin
+  - srad
+  - vp
+
+
+static_attributes:
+  - DRAIN_SQKM
+  - LAT_GAGE
+  - LNG_GAGE
+  - DDENS_2009
+  - MAJ_DDENS_2009
+  - HYDRO_DISTURB_INDX
+  - BAS_COMPACTNESS
+  - ELEV_MEAN_M_BASIN
+  - SLOPE_PCT
+  - HGA
+  - HGB
+  - HGAD
+  - HGC
+  - HGD
+  - HGAC
+  - HGBD
+  - HGCD
+  - HGBC
+  - HGVAR
+  - PRCPAVG
+  - PETAVG
+  - AI
+  - PREC_SEAS
+  - SNOW_FRAC
+  - HPF
+  - HPD
+  - LPF
+  - LPD
+  - Corn
+  - Cotton
+  - Rice
+  - Sorghum
+  - Soybeans
+  - Oilseed
+  - Barley
+  - Spring_Wheat
+  - Winter_Wheat
+  - Other_Cereals
+  - Alfalfa
+  - Other_Hay
+  - Nuts
+  - Peas_Beans
+  - Tree_Crops
+  - Melons
+  - Berries
+  - Herbs
+  - Roots
+  - Vegetables
+  - Double_Crops
+  - Aquaculture
+  - Fallow
+  - Developed_Open_Low
+  - Developed_Med_High
+  - Forest
+  - Wetlands
+  - Shrubland
+  - Grassland_Pasture
+  - Open_Water
+  - Perennial_Ice_Snow
+  - Barren
+
+
+
+# which columns to use as target
+target_variables:
+  - QObs
+
+# clip negative predictions to zero for all variables listed below. Should be a list, even for single variables.
+clip_targets_to_zero:
+  - QObs

@@ -1,0 +1,197 @@
+# --- Experiment configurations --------------------------------------------------------------------
+
+# experiment name, used as folder name
+experiment_name: LSTM_dyn_KFold2
+
+# files to specify training, validation and test basins (relative to code root or absolute path)
+train_basin_file: /work/pi_casey_umass_edu/Owen/lulc_lstm/txt_files/basins_StratifiedKFold_training_2.txt
+validation_basin_file: /work/pi_casey_umass_edu/Owen/lulc_lstm/txt_files/basins_StratifiedKFold_training_2.txt
+test_basin_file: /work/pi_casey_umass_edu/Owen/lulc_lstm/txt_files/basins_StratifiedKFold_test_2.txt
+
+run_dir: ../runs
+
+# training, validation and test time periods (format = 'dd/mm/yyyy')
+train_start_date: "01/01/2008"
+train_end_date: "31/12/2023"
+validation_start_date: "01/01/2008"
+validation_end_date: "31/12/2023"
+test_start_date: "01/01/2008"
+test_end_date: "31/12/2023"
+
+# which GPU (id) to use [in format of cuda:0, cuda:1 etc, or cpu or None]
+device: cuda:0
+
+# --- Validation configuration ---------------------------------------------------------------------
+
+# specify after how many epochs to perform validation
+validate_every: 5
+
+# specify how many random basins to use for validation
+validate_n_random_basins: 1200
+
+# specify which metrics to calculate during validation (see neuralhydrology.evaluation.metrics)
+# this can either be a list or a dictionary. If a dictionary is used, the inner keys must match the name of the
+# target_variable specified below. Using dicts allows for different metrics per target variable.
+metrics:
+  - NSE
+  - RMSE
+  - Alpha-NSE
+
+# --- Model configuration --------------------------------------------------------------------------
+
+# base model type [lstm, ealstm, cudalstm, embcudalstm, mtslstm]
+# (has to match the if statement in modelzoo/__init__.py)
+model: cudalstm
+
+# prediction head [regression]. Define the head specific parameters below
+head: regression
+
+# ----> Regression settings <----
+output_activation: linear
+
+# ----> General settings <----
+
+# Number of cell states of the LSTM
+hidden_size: 256
+
+# Initial bias value of the forget gate
+initial_forget_bias: 3
+
+# Dropout applied to the output of the LSTM
+output_dropout: 0.4
+
+# --- Training configuration -----------------------------------------------------------------------
+
+# specify optimizer [Adam]
+optimizer: Adam
+
+# specify loss [MSE, NSE, RMSE]
+loss: NSE
+
+# specify learning rates to use starting at specific epochs (0 is the initial learning rate)
+learning_rate:
+  0: 1e-3
+  20: 5e-4 
+  25: 1e-5
+
+
+# Mini-batch size
+batch_size: 256
+
+# Number of training epochs
+epochs: 30
+
+# If a value, clips the gradients during training to that norm.
+clip_gradient_norm: 1
+
+# Defines which time steps are used to calculate the loss. Can't be larger than seq_length.
+# If use_frequencies is used, this needs to be a dict mapping each frequency to a predict_last_n-value, else an int.
+predict_last_n: 1
+
+# Length of the input sequence
+# If use_frequencies is used, this needs to be a dict mapping each frequency to a seq_length, else an int.
+seq_length: 270
+
+# Number of parallel workers used in the data pipeline
+num_workers: 8
+
+# Log the training loss every n steps
+log_interval: 1
+
+# If true, writes logging results into tensorboard file
+log_tensorboard: True
+
+# If a value and greater than 0, logs n random basins as figures during validation
+log_n_figures: 1
+
+# Save model weights every n epochs
+save_weights_every: 1
+
+# --- Data configurations --------------------------------------------------------------------------
+
+# which data set to use [camels_us, camels_gb, global, hourly_camels_us]
+dataset: generic
+
+# Path to data set root
+data_dir: /work/pi_casey_umass_edu/pbanjara/LSTM-LULC/data/LSTM_input_data/LSTM_LULC_DROMEDARY_Zhilyaev_2024/time_series
+
+
+dynamic_inputs:
+  - prcp
+  - tmax
+  - tmin
+  - srad
+  - vp
+  - Corn
+  - Cotton
+  - Rice
+  - Sorghum
+  - Soybeans
+  - Oilseed
+  - Barley
+  - Spring_Wheat
+  - Winter_Wheat
+  - Other_Cereals
+  - Alfalfa
+  - Other_Hay
+  - Nuts
+  - Peas_Beans
+  - Tree_Crops
+  - Melons
+  - Berries
+  - Herbs
+  - Roots
+  - Vegetables
+  - Double_Crops
+  - Aquaculture
+  - Fallow
+  - Developed_Open_Low
+  - Developed_Med_High
+  - Forest
+  - Wetlands
+  - Shrubland
+  - Grassland_Pasture
+  - Open_Water
+  - Perennial_Ice_Snow
+  - Barren
+
+
+static_attributes:
+  - DRAIN_SQKM
+  - LAT_GAGE
+  - LNG_GAGE
+  - DDENS_2009
+  - MAJ_DDENS_2009
+  - HYDRO_DISTURB_INDX
+  - BAS_COMPACTNESS
+  - ELEV_MEAN_M_BASIN
+  - SLOPE_PCT
+  - HGA
+  - HGB
+  - HGAD
+  - HGC
+  - HGD
+  - HGAC
+  - HGBD
+  - HGCD
+  - HGBC
+  - HGVAR
+  - PRCPAVG
+  - PETAVG
+  - AI
+  - PREC_SEAS
+  - SNOW_FRAC
+  - HPF
+  - HPD
+  - LPF
+  - LPD
+
+
+
+# which columns to use as target
+target_variables:
+  - QObs
+
+# clip negative predictions to zero for all variables listed below. Should be a list, even for single variables.
+clip_targets_to_zero:
+  - QObs

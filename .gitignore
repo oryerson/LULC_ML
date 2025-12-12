@@ -6,3 +6,4 @@ GRU_runs/
 *.log
 .ipynb_checkpoints/
 __pycache__/
+logs_train/
